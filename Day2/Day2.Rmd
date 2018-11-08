@@ -1,0 +1,88 @@
+---
+title: "R Notebook"
+output: github_document
+---
+
+# Systembolaget’s assortment
+
+### Training with ```arrange```, ```filter```, ```mutate```, ```select```, ```%>%```
+
+```{r}
+library(tidyverse)
+library(knitr)
+
+Sortiment_hela <-read.csv("../Class_files/systembolaget2018-10-08.csv", encoding = "UTF-8")
+
+# Convert Alkoholhalt to numeric
+Sortiment_hela <- mutate(Sortiment_hela,
+       Alkoholhalt = as.numeric(gsub("%", "", Alkoholhalt))
+         
+)
+
+# Mutate Varugrupp
+Sortiment_hela <- Sortiment_hela %>%
+  mutate(Varugrupp = ifelse(Varugrupp == "Röda", "Rött vin", Varugrupp),
+         Varugrupp = ifelse(Varugrupp == "Vita", "Vitt vin", Varugrupp)
+         ) 
+
+# Extract name for vbeverage with highest price per liter
+max_PrisPerLiter_namn <- filter(Sortiment_hela, PrisPerLiter == max(PrisPerLiter))[1, "Namn"]
+
+
+#New data table and table
+Sortiment_ord <- Sortiment_hela %>%
+        filter(SortimentText == "Ordinarie sortiment") %>%
+        arrange(desc(PrisPerLiter))
+
+Sortiment_ord %>% 
+        select(nr, Namn, Prisinklmoms, Varugrupp, Argang) %>%
+        head(n = 10) %>%
+        kable(format = "markdown")
+
+```
+
+The beverage with the highest price per liter is `r max_PrisPerLiter_namn` .
+
+
+### Training with ```ggplot```, ```geom_point```, ```geom_line```, ```facet_wrap```
+
+```{r}
+#Plot PrisPerLiter against Alkoholhalt
+ggplot(Sortiment_ord, aes(x = Alkoholhalt, y = PrisPerLiter, color = Varugrupp)) +
+        geom_point() +
+        scale_y_log10()
+#Plot PrisPerLiter against Varugrupp
+ggplot(Sortiment_ord, aes(x = Varugrupp, y = PrisPerLiter)) +
+        geom_point() +
+        coord_flip() +
+        scale_y_log10()
+
+#It doesn't excist any group with the namnes in the given vector c("Vitt vin", "Rött vin", "Rosévin", "Mousserande vin")
+Sortiment_ord %>% filter(Argang %in% c(seq(2010, 2017))) %>%
+        ggplot(mapping = aes(x = Argang, y = PrisPerLiter, color = Varugrupp)) +
+        geom_point()
+        
+```
+
+# Film events
+
+```{r}
+
+film_events <- read.csv("../Class_files/Film_events_2018-11-07.csv", encoding = "UTF-8")
+
+# List soldout films
+films_soldout <- film_events %>% 
+        group_by(eventName_en) %>%
+        filter(all(eventTicketStatus == "soldout")) %>%
+        select(eventName_en) %>%
+        unique()
+
+films_soldout
+```
+
+
+
+
+
+
+
