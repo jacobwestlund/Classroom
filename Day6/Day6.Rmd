@@ -6,6 +6,7 @@ date: 2018-11-19
 
 ```{r message=FALSE}
 library(tidyverse)
+library(knitr)
 ```
 
 
@@ -20,6 +21,8 @@ dental_data <- read_csv2("../Class_files/Statistikdatabasen_2018-01-23 14_46_26.
 
 # Sytembolaget
 
+We will know look at changes to Sytembolaget's assortment. We start by loading data and create dataframes for new beverages and beverages that have been removed from the assortment.
+
 ```{r warning=FALSE, message=FALSE}
 # Load data 
 sortiment_11_19 <- read_csv("systembolaget2018-11-19.csv")
@@ -32,6 +35,36 @@ sortiment_nytt <- setdiff(sortiment_11_19, sortiment_10_08)
 sortiment_borta <- setdiff(sortiment_10_08, sortiment_11_19)
 ```
 
+Nowthat we have created dataframes. Let us look at what types of beverages have been removed and what have been added.
+
+```{r}
+# List 5 categories with most added beverages
+new_table <- sortiment_nytt %>% 
+  group_by(Varugrupp) %>%
+  summarize(num_added = n()) %>%
+  arrange(desc(num_added), Varugrupp) %>%
+  select(Varugrupp, num_added) %>%
+  head(5) %>% 
+  kable(col.names = c("Varugrupp", "Beverages added"))
+
+# List 5 categories with most removed beverages
+removed_table <- sortiment_borta %>%
+  group_by(Varugrupp) %>%
+  summarize(num_removed = n()) %>%
+  arrange(desc(num_removed), Varugrupp) %>%
+  select(Varugrupp, num_removed) %>%
+  head(5) %>% 
+  kable(col.names = c("Varugrupp", "Beverages removed"))
+```
+
+### Five categories with most new beverages
+
+`r new_table`
+
+
+### Five categories with most removed beverages
+
+`r removed_table`
 
 # Pokémon
 
