@@ -1,0 +1,41 @@
+---
+title: "Day6"
+output: github_document
+date: 2018-11-19
+---
+
+```{r message=FALSE}
+library(tidyverse)
+```
+
+
+# More dental care
+
+```{r warning=FALSE, message=FALSE}
+# Load data
+dental_data <- read_csv2("../Class_files/Statistikdatabasen_2018-01-23 14_46_26.csv", skip = 1, n_max = 580)
+#pop_data <- read_csv2("../Class_files/BE0101A5.csv")
+```
+
+
+# Sytembolaget
+
+```{r warning=FALSE, message=FALSE}
+# Load data 
+sortiment_11_19 <- read_csv("systembolaget2018-11-19.csv")
+sortiment_10_08 <- read_csv("../Class_files/systembolaget2018-10-08.csv")
+
+# Dataframe of newly added beverages
+sortiment_nytt <- setdiff(sortiment_11_19, sortiment_10_08)
+
+# Dataframe newly removed beverages
+sortiment_borta <- setdiff(sortiment_10_08, sortiment_11_19)
+```
+
+
+# Pokémon
+
+
+
+# More birdwatching
+
