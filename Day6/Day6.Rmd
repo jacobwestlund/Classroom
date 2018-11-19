@@ -12,10 +12,25 @@ library(knitr)
 
 # More dental care
 
-```{r warning=FALSE, message=FALSE}
+```{r message=FALSE, warning=FALSE}
 # Load data
 dental_data <- read_csv2("../Class_files/Statistikdatabasen_2018-01-23 14_46_26.csv", skip = 1, n_max = 580)
-#pop_data <- read_csv2("../Class_files/BE0101A5.csv")
+pop_data <- read_csv("BE0101A5.csv", skip = 2)
+```
+
+```{r}
+dental_data_tidy <- gather(dental_data, `2010`:`2016`, key = "År", value = "Antal") %>%
+  unite(id, Region, Kön, År, remove = FALSE) %>%
+  mutate(id = tolower(id))
+
+pop_data_tidy <- gather(pop_data, `2006`:`2016`, key = "år", value = "antal") %>%
+  separate(region, c("nr", "namn1", "namn2")) %>%
+  replace_na(list(namn2 = "")) %>%
+  unite(region, namn1, namn2, sep = "") %>%
+  unite(id, region, kön, år, remove = FALSE) %>%
+  mutate(id = tolower(id))
+
+left_join(dental_data_tidy, pop_data_tidy, by = "id")
 ```
 
 
@@ -35,7 +50,7 @@ sortiment_nytt <- setdiff(sortiment_11_19, sortiment_10_08)
 sortiment_borta <- setdiff(sortiment_10_08, sortiment_11_19)
 ```
 
-Nowthat we have created dataframes. Let us look at what types of beverages have been removed and what have been added.
+Now that we have created dataframes. Let us look at what types of beverages have been removed and what have been added.
 
 ```{r}
 # List 5 categories with most added beverages
@@ -66,8 +81,31 @@ removed_table <- sortiment_borta %>%
 
 `r removed_table`
 
+We can see that it appears that the removed beverages mostly have been replaced by new beverages in the same categories. We could create a graph to show the net difference within each category but for now we will move on.
+
 # Pokémon
 
+```{r message=FALSE}
+# Load pokémon data
+pokemon <- read_csv("https://raw.githubusercontent.com/veekun/pokedex/master/pokedex/data/csv/pokemon.csv")
+types <- read_csv("https://raw.githubusercontent.com/veekun/pokedex/master/pokedex/data/csv/types.csv")
+pokemon_types <- read_csv("https://raw.githubusercontent.com/veekun/pokedex/master/pokedex/data/csv/pokemon_types.csv")
+```
+
+```{r}
+# Join and spread data
+pokemon_types_identifier <- left_join(pokemon_types, types, by = c("type_id" = "id")) %>%
+  select(pokemon_id, slot, identifier) %>%
+  spread(slot, identifier)
+
+# Rename columns
+colnames(pokemon_types_identifier)[2:3] <- c("slot1", "slot2")
+
+# Join to final dataframe
+left_join(pokemon_types_identifier, pokemon, by = c("pokemon_id" = "id")) %>%
+  select(pokemon_id, identifier, slot1, slot2 , weight, height) %>%
+  head()
+```
 
 
 # More birdwatching
