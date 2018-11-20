@@ -3,3 +3,80 @@ title: "Day7"
 output: github_document
 ---
 
+```{r message=FALSE, warning=FALSE}
+library(DBI)
+library(tidyverse)
+```
+
+
+# SL SQL
+
+Let us start by connecting to sthlm_metro database.
+
+```{r}
+con <- dbConnect(RSQLite::SQLite(), "../Class_files/sthlm_metro.sqlite")
+dbListTables(con)
+```
+
+We that the database contains three different tables. To answer the question how they relate to eachother, let us load some rows from each.
+
+```{r}
+dbGetQuery(con, "SELECT * FROM Line LIMIT 3")   # Line table
+dbGetQuery(con, "SELECT * FROM LinePlatform LIMIT 3")   # LinePlatform table
+dbGetQuery(con, "SELECT * FROM Platform LIMIT 3")   # Platform table
+```
+
+We can know see how they connect to eachother:
+
+- ```Line``` connects to ```LinePlatform``` through ```LineNumber```.
+- ```Platform``` connects to ```LinePlatform``` through ```PlatformNumber```.
+- ```Line``` does not connect to ```Platform```.
+
+**The first task is to query for the LineName from table Line where LineNumber is 18.**
+
+```{r}
+line_name_18 <- dbGetQuery(con, "SELECT LineName FROM Line WHERE LineNumber = 18") %>%
+  pull()
+```
+
+The line name of line number 18 is *"`r line_name_18`"*. Let us move on to the next task.
+
+**Query for the number of stops on LineNumber 18 Direction 1.**
+
+```{r}
+count_stops <- dbGetQuery(con, "SELECT COUNT(PlatformNumber) FROM LinePlatform WHERE LineNumber = 18 AND Direction = 1") %>%
+  pull()
+```
+
+Line number 18 has *`r count_stops`* stops in direction 1.
+
+**Query for the five most southern StationName, where position is measured as the average Latitude of its PlatformNumber.**
+
+```{r}
+southern_stations <- dbGetQuery(con, "SELECT StationName, AVG(Latitude) as avgLatitude 
+                                FROM Platform 
+                                GROUP BY StationName 
+                                ORDER BY avgLatitude
+                                LIMIT 5")
+
+knitr::kable(southern_stations, col.names = c("Station", "Latitude"))
+```
+
+The stations that we are given look reasonable. At least they are all south of Stockholm.
+
+**Query for all StationName on LineNumber 18 Direction 1.**
+
+```{r}
+dbGetQuery(con, "SELECT DISTINCT(StationName)
+           FROM Platform 
+           LEFT JOIN LinePlatform ON Platform.PlatformNumber = LinePlatform.PlatformNumber
+           WHERE LineNumber = 18 AND Direction = 1
+           ORDER BY StationName")
+```
+
+End by disconnect from database.
+
+```{r}
+dbDisconnect(con)
+```
+
