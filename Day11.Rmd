@@ -1,0 +1,58 @@
+---
+title: "Day11"
+output: github_document
+---
+
+```{r warning=FALSE}
+library(tidyverse)
+library(rvest)
+```
+
+
+```{r}
+# URL Pocketstoppen
+pocket <- read_html("https://www.bokus.com/topplistor/pockettoppen")
+```
+
+```{r}
+# Titles
+titles <- pocket %>% html_nodes(".Item__title--large a") %>% 
+  html_text() %>% 
+  str_split(pattern = "\\n") %>% 
+  map(1) %>% 
+  flatten_chr() %>%
+  str_trim()
+
+head(titles)
+```
+
+
+```{r}
+# Authors
+authors <- pocket %>% html_nodes(".ProductList__authors a") %>%
+  html_text() %>%
+  str_trim()
+
+head(authors)
+```
+
+```{r}
+# Price
+price <- pocket %>% html_nodes(".pricing__price") %>%
+  html_text() %>%
+  as.numeric()
+
+head(price)
+```
+
+```{r}
+authors[8] <- paste(authors[8], authors[9], sep = ", ")
+authors <- authors[-9]
+pockettoppen <- data_frame(titles, authors, price)
+glimpse(pockettoppen)
+```
+
+```{r}
+
+```
+
